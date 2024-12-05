@@ -44,6 +44,104 @@
   
   const app = express();
   
-  app.use(bodyParser.json());
-  
+ const todos=[];
+ let nextId=1;
+ app.use(bodyParser.json());
+
+  app.get("/todos", function(req,res){
+  res.status(200).json(todos);
+  })
+
+  app.get("/todos/:id", function(req,res){
+    const id=parseInt(req.params.id, 10);
+    const todo=todos.find(item=> item.id ===id)
+    if(!todo){
+      return res.status(404).json({
+        error:"Todo not found",
+      })
+    }
+    res.status(200).json(todo)
+  })
+
+  app.post("/todos", (req,res)=>{
+    const {title,description,completed}=req.body;
+
+    if(!title || typeof title !== 'string'){
+      return res.status(400).json({
+        error: "Title is required and must be a string"
+      })
+    }
+    if(!description || typeof description !== 'string'){
+      return res.status(400).json({
+        error: "Description is required and must be a string"
+      })
+    }
+    if(typeof completed !== 'boolean'){
+      return res.status(400).json({
+        error: "Completed must be a boolean"
+      })
+    }
+    const newTodo={
+      id:nextId++,
+      title,
+      description,
+      completed,
+    };
+    todos.push(newTodo);
+
+    res.status(201).json({
+      id:newTodo.id
+    })
+  })
+
+  app.put("/todos/:id", (req,res)=>{
+    const id=parseInt(req.params.id, 10);
+    const { title, description, completed } = req.body;
+    if(!title || typeof title !== 'string'){
+      return res.status(400).json({
+        error: "Title is required and must be a string"
+      })
+    }
+    if(!description || typeof description !== 'string'){
+      return res.status(400).json({
+        error: "Description is required and must be a string"
+      })
+    }
+    if(typeof completed !== 'boolean'){
+      return res.status(400).json({
+        error: "Completed must be a boolean"
+      })
+    }
+    const todo = todos.find(item => item.id === id);
+   if(!todo){
+    return res.status(404).json({
+      error:"Todo not found"
+    })
+   }
+   todo.title=title;
+   todo.description=description;
+   todo.completed=completed;
+   res.status(200).json(todo);
+  })
+
+  app.delete("/todos/:id", (req,res)=>{
+    const id=parseInt(req.params.id, 10);
+    const index = todos.findIndex(item => item.id === id);
+    if(index === -1){
+      return res.status(404).json({
+        error:"Todo not found"
+      })
+    }
+   todos.splice(index,1);
+    res.status(200).json({message:"Todo removed successfully"});
+  })
+
+  app.all("*" ,(req,res) =>{
+    res.status(404).json({
+        msg:"Route not found",
+    });
+})
+  app.listen(3000, () => {
+    console.log("Server is running on http://localhost:3000");
+  });
   module.exports = app;
